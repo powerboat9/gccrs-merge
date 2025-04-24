@@ -1,0 +1,242 @@
+#!/bin/bash
+
+# config
+DEFAULT_NAME="Owen Avery"
+DEFAULT_EMAIL="powerboat9.gamer@gmail.com"
+
+# command line arguments
+if [ "$#" != 4 ]; then
+  echo "$0 GIT_REPO GIT_DOWNSTREAM_BRANCH GIT_UPSTREAM_BRANCH GIT_OUTPUT_BRANCH"
+  exit 1
+fi
+
+GIT_REPO="$(cd "$1" && pwd)"
+GIT_DOWNSTREAM="$2"
+GIT_UPSTREAM="$3"
+GIT_OUTPUT="$4"
+
+# create temporary git directory
+GIT_DIR="$(mktemp -d --tmpdir gccrs-merge-repo-XXXXXX)"
+
+echo "Creating temporary repo $GIT_DIR"
+
+# initialize temporary git directory
+(cd "$GIT_DIR" && \
+  git init -q . && \
+  echo "$GIT_REPO/.git/objects" > .git/objects/info/alternates && \
+  git remote add super "$GIT_REPO" && \
+  git fetch --no-tags super "$GIT_DOWNSTREAM":master-downstream \
+			    "$GIT_UPSTREAM":master-upstream
+  git checkout -b result master-downstream)
+
+# ensure we have identity set
+
+(cd "$GIT_DIR" && \
+  (git config get user.name 1>/dev/null || \
+    git config set user.name "$DEFAULT_NAME") && \
+  (git config get user.email 1>/dev/null || \
+    git config set user.email "$DEFAULT_EMAIL"))
+
+# save results and exit
+push_result() {
+  (cd "$GIT_DIR" && \
+    git push -uf super result:"$GIT_OUTPUT") && \
+  rm -rf -- "$GIT_DIR"
+  exit 0
+}
+
+# maybe we can just merge upstream/downstream
+attempt_simple_merge() {
+  if (cd "$GIT_DIR" && git merge -m \
+      "Merge gcc-master into result" master-upstream >/dev/null); then
+    return 0
+  else
+    (cd "$GIT_DIR" && git merge --abort)
+    return 1
+  fi
+}
+
+# run when we've solved all conflicts when merging the last upstreamed commits
+finish_last_upstream_merge() {
+  (cd "$GIT_DIR" && \
+    # effectively "git merge --continue --no-edit"
+    # see: https://lore.kernel.org/all/xmqqk0ft5toy.fsf@gitster.g/T/
+    git commit --no-edit --cleanup=strip && \
+    git checkout result && \
+    git merge -m "Merge intermediate merge into result" \
+      intermediate-merge) || exit 1
+  attempt_simple_merge
+  push_result || exit 1
+}
+
+# figure out which files have merge conflicts
+calc_conflict_list() {
+  CONFLICT_LIST="$(cd "$GIT_DIR" && \
+    git status --porcelain=v2 | \
+    grep '^u' | cut -d ' ' -f 11 | \
+    grep -v '^"')"
+}
+
+# finish merge of the last upstreamed commits, if we've resolved all conflicts
+try_finish_last_upstream_merge() {
+  calc_conflict_list
+  if [[ -z "$CONFLICT_LIST" ]]; then
+    finish_last_upstream_merge
+  fi
+}
+
+# find the last upstreamed commit on both branches
+# store downstream in COMMIT_A and upstream in COMMIT_B
+find_last_upstreamed() {
+  declare -A GIT_COMMIT_LISTING_A
+  declare -A GIT_COMMIT_LISTING_B
+
+  COMMIT_A="$(cd "$GIT_DIR" && git rev-parse master-downstream)"
+  COMMIT_B="$(cd "$GIT_DIR" && git rev-parse master-upstream)"
+
+  while true; do
+    if [ -n "$COMMIT_A" ]; then
+      COMMIT_NAME="$(cd "$GIT_DIR" && \
+		     git show -s --format=format:"%s" $COMMIT_A | \
+		     sed 's/^gccrs: //')"
+      OTHER_COMMIT="${GIT_COMMIT_LISTING_B["$COMMIT_NAME"]}"
+      if [[ -n "$OTHER_COMMIT" ]]; then
+	COMMIT_B="$OTHER_COMMIT"
+	break
+      fi
+      GIT_COMMIT_LISTING_A["$COMMIT_NAME"]="$COMMIT_A"
+      COMMIT_A="$(cd "$GIT_DIR" && git rev-parse --verify "$COMMIT_A~")"
+    fi
+
+    if [ -n "$COMMIT_A" ]; then
+      COMMIT_NAME="$(cd "$GIT_DIR" && \
+		     git show -s --format=format:"%s" $COMMIT_B | \
+		     sed 's/^gccrs: //')"
+      OTHER_COMMIT="${GIT_COMMIT_LISTING_A["$COMMIT_NAME"]}"
+      if [[ -n "$OTHER_COMMIT" ]]; then
+	COMMIT_A="$OTHER_COMMIT"
+	break
+      fi
+      GIT_COMMIT_LISTING_B["$COMMIT_NAME"]="$COMMIT_B"
+      COMMIT_B="$(cd "$GIT_DIR" && git rev-parse --verify "$COMMIT_B~")"
+    fi
+  done
+
+  unset GIT_COMMIT_LISTING_A
+  unset GIT_COMMIT_LISTING_B
+}
+
+echo "Attempting simple merge"
+attempt_simple_merge && push_result || echo "Simple merge failed"
+
+find_last_upstreamed
+echo "Found commit ${COMMIT_A:0:12} : ${COMMIT_B:0:12}"
+
+# Check if this merge would be redundant
+
+if (cd "$GIT_DIR" && \
+    git merge-base --is-ancestor "$COMMIT_B" "master-downstream"); then
+  echo "Merge already performed, exiting early"
+  exit 0
+fi
+
+# Try to merge
+
+(cd "$GIT_DIR" && \
+  git checkout -b intermediate-merge "$COMMIT_A" && \
+  git merge -m "Perform intermediate merge" "$COMMIT_B" >/dev/null)
+
+try_finish_last_upstream_merge
+
+# Attempt to resolve simple merge conflicts
+
+echo
+echo "Conflicts:"
+echo "$CONFLICT_LIST" | sed 's/^/\* /'
+echo "Attempting to fix any add/add copyright issues..."
+
+IFS=$'\n'
+for FILE in $CONFLICT_LIST; do
+  # compare downstream and upstream
+  PATCH="$(cd "$GIT_DIR" && git diff :2:"$FILE" :3:"$FILE")"
+  # strip leading info
+  while [ x"${PATCH:0:2}" != "x@@" ]; do
+    PATCH="$(echo "$PATCH" | tail -n +2)"
+  done
+  # check that the patch is modifying a copyright header
+  # try to catch anything out of place
+  if [ "$(echo "$PATCH" | head -n 1)" != "@@ -1,4 +1,4 @@" ]; then
+    continue
+  fi
+  PATCH="$(echo "$PATCH" | tail -n +2)"
+  if [ "$(echo "$PATCH" | wc -l)" != 5 ]; then
+    continue
+  fi
+  if [ "$(echo "$PATCH" | tail -n 3)" != \
+	$' \n // This file is part of GCC.\n ' ]; then
+    continue
+  fi
+  PATCH="$(echo "$PATCH" | head -n 2)"
+  if [ "$(echo "$PATCH" | grep '[+-]// Copyright (C) ' | wc -l)" != 2 ]; then
+    continue
+  fi
+  PATCH="$(echo "$PATCH" | \
+sed 's/^[+-]\/\/ Copyright (C) //;s/ Free Software Foundation, Inc\.$//' | \
+tr '\n' ':')"
+  # TODO: improve this check when we get close to 2026/2027/etc
+  # or else the auto-resolution will cautiously bail out
+  # on add/add conflicts involving years past 2025
+  #
+  # add/add conflicts due to copyright headers should be a once-in-a-blue-moon
+  # thing, though, so this might become moot
+  # (as long as we keep downstream up-to-date)
+  case "$PATCH" in
+    2020-2024:2020-2025:| \
+    2024:2024-2025:| \
+    2020-2023:2020-2025:| \
+    2023-2024:2023-2025)
+      ;;
+    *)
+      echo "unrecognized year range modification: $PATCH"
+      continue
+      ;;
+  esac
+  # we can use the upstream version of the file
+  echo "Automatically handling $FILE"
+  (cd "$GIT_DIR" && \
+    git checkout --theirs -- "$FILE" && \
+    git add "$FILE")
+done
+unset IFS
+
+try_finish_last_upstream_merge
+
+# Apply some stored patches
+
+cat "$(dirname "$0")/0001-fixup.patch" | \
+sed "s/>>>>>>>/>>>>>>> $COMMIT_B/" | ( \
+  cd "$GIT_DIR" && \
+  patch -p1)
+
+IFS=$'\n'
+for FILE in $CONFLICT_LIST; do
+  if [[ -z "$(cd "$GIT_DIR" && \
+	      cat "$FILE" | \
+	      grep '^(>>>>>>>\|<<<<<<<|=======)')" ]]; then
+    (cd "$GIT_DIR" && git add "$FILE")
+  fi
+done
+unset IFS
+
+try_finish_last_upstream_merge
+
+# Check for remaining conflicts
+
+echo "Remaining conflicts:"
+echo "$CONFLICT_LIST" | sed 's/^/\* /'
+echo "Manual resolution required"
+
+while :; do
+  (cd "$GIT_DIR" && bash)
+  try_finish_last_upstream_merge
+done

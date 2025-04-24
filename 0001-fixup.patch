@@ -1,0 +1,210 @@
+diff --git a/.gitignore b/.gitignore
+index a1f8b55012a..600e8052bdd 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -73,12 +73,8 @@ stamp-*
+ /gettext*
+ 
+ # ADDITIONS from GCCRS front-end
+-<<<<<<< HEAD
+ .vscode/*
+ test.code-workspace
+ 
+ gcc/rust/test3-tiny/*
+ .clang-format.swap
+-=======
+-libgrust/*/target/
+->>>>>>>
+diff --git a/configure b/configure
+index 3a5c2e45d12..bf574efd1d8 100755
+--- a/configure
++++ b/configure
+@@ -691,10 +691,7 @@ extra_host_libiberty_configure_flags
+ stage1_languages
+ host_libs_picflag
+ CRAB1_LIBS
+-<<<<<<< HEAD
+-=======
+ enable_libgdiagnostics
+->>>>>>>
+ PICFLAG
+ host_shared
+ gcc_host_pie
+@@ -9713,8 +9710,6 @@ fi
+ 
+ 
+ 
+-<<<<<<< HEAD
+-=======
+ 
+ # Check for libgdiagnostics support.
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable libgdiagnostics" >&5
+@@ -9754,7 +9749,6 @@ $as_echo "$enable_libgdiagnostics" >&6; }
+ 
+ 
+ 
+->>>>>>>
+ # Rust requires -ldl and -lpthread if you are using an old glibc that does not include them by
+ # default, so we check for them here
+ # We are doing the test here and not in the gcc/configure to be able to nicely disable the
+diff --git a/configure.ac b/configure.ac
+index c31ce44a888..3e120b027e9 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -2143,8 +2143,6 @@ fi
+ 
+ AC_SUBST(PICFLAG)
+ 
+-<<<<<<< HEAD
+-=======
+ 
+ # Check for libgdiagnostics support.
+ AC_MSG_CHECKING([whether to enable libgdiagnostics])
+@@ -2180,7 +2178,6 @@ AC_MSG_RESULT($enable_libgdiagnostics)
+ AC_SUBST(enable_libgdiagnostics)
+ 
+ 
+->>>>>>>
+ # Rust requires -ldl and -lpthread if you are using an old glibc that does not include them by
+ # default, so we check for them here
+ # We are doing the test here and not in the gcc/configure to be able to nicely disable the
+diff --git a/gcc/doc/install.texi b/gcc/doc/install.texi
+index cfb19c1b6de..1af0082ed77 100644
+--- a/gcc/doc/install.texi
++++ b/gcc/doc/install.texi
+@@ -227,16 +227,6 @@ Necessary to bootstrap GCC.  GCC 5.4 or newer has sufficient support
+ for used C++14 features.
+ 
+ Versions of GCC prior to 15 allow bootstrapping with an ISO C++11
+-<<<<<<< HEAD
+-compiler, versions prior to 11 allow bootstrapping with an ISO C++98
+-compiler, and versions prior to 4.8 allow bootstrapping with an ISO
+-C89 compiler.
+-
+-If you need to build an intermediate version of GCC in order to
+-bootstrap current GCC, consider GCC 9.5: it can build the current Ada
+-and D compilers, and was also the version that declared C++17 support
+-stable.
+-=======
+ compiler, versions prior to 10.5 allow bootstrapping with an ISO C++98
+ compiler, and versions prior to 4.8 allow bootstrapping with an ISO
+ C89 compiler.
+@@ -250,7 +240,6 @@ To build all languages in a cross-compiler or other configuration where
+ 3-stage bootstrap is not performed, you need to start with an existing
+ GCC binary (of a new enough version) because source code for language
+ frontends other than C might use GCC extensions.
+->>>>>>>
+ 
+ @item C standard library and headers
+ 
+diff --git a/gcc/rust/backend/rust-compile-asm.cc b/gcc/rust/backend/rust-compile-asm.cc
+index a6222b7b858..22498bc4ea0 100644
+--- a/gcc/rust/backend/rust-compile-asm.cc
++++ b/gcc/rust/backend/rust-compile-asm.cc
+@@ -15,11 +15,7 @@ CompileAsm::tree_codegen_asm (HIR::InlineAsm &expr)
+ 					  asm_construct_clobber_tree (expr),
+ 					  asm_construct_label_tree (expr)});
+ 
+-<<<<<<< HEAD
+-  ASM_INPUT_P (asm_expr) = expr.is_simple_asm ();
+-=======
+   ASM_BASIC_P (asm_expr) = expr.is_simple_asm ();
+->>>>>>>
+   ASM_VOLATILE_P (asm_expr) = false;
+   ASM_INLINE_P (asm_expr) = expr.is_inline_asm ();
+   /*Backend::debug (asm_expr);*/
+diff --git a/gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.h b/gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.h
+index 617899381cb..9ab059152d7 100644
+--- a/gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.h
++++ b/gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.h
+@@ -22,11 +22,7 @@
+ #include "polonius/rust-polonius.h"
+ #include "rust-bir.h"
+ #include "rust-hir-item.h"
+-<<<<<<< HEAD
+-#include "gcc-rich-location.h"
+-=======
+ #include "text-range-label.h"
+->>>>>>>
+ 
+ namespace Rust {
+ namespace BIR {
+diff --git a/gcc/rust/resolve/rust-ice-finalizer.cc b/gcc/rust/resolve/rust-ice-finalizer.cc
+index 190f32ef356..bd4763f8c76 100644
+--- a/gcc/rust/resolve/rust-ice-finalizer.cc
++++ b/gcc/rust/resolve/rust-ice-finalizer.cc
+@@ -22,20 +22,12 @@ namespace Rust {
+ namespace Resolver {
+ 
+ void ATTRIBUTE_NORETURN
+-<<<<<<< HEAD
+-funny_ice_finalizer (diagnostic_context *context,
+-		     const diagnostic_info *diagnostic, diagnostic_t diag_kind)
+-{
+-  gcc_assert (diag_kind == DK_ICE_NOBT);
+-  default_diagnostic_finalizer (context, diagnostic, diag_kind);
+-=======
+ funny_ice_text_finalizer (diagnostic_text_output_format &text_output,
+ 			  const diagnostic_info *diagnostic,
+ 			  diagnostic_t diag_kind)
+ {
+   gcc_assert (diag_kind == DK_ICE_NOBT);
+   default_diagnostic_text_finalizer (text_output, diagnostic, diag_kind);
+->>>>>>>
+   fnotice (stderr, "You have broken GCC Rust. This is a feature.\n");
+   exit (ICE_EXIT_CODE);
+ }
+diff --git a/gcc/rust/resolve/rust-ice-finalizer.h b/gcc/rust/resolve/rust-ice-finalizer.h
+index 8e0174903fd..85ab88ff714 100644
+--- a/gcc/rust/resolve/rust-ice-finalizer.h
++++ b/gcc/rust/resolve/rust-ice-finalizer.h
+@@ -55,14 +55,9 @@ namespace Resolver {
+    the default bug reporting instructions, as there is no bug to report.  */
+ 
+ void ATTRIBUTE_NORETURN
+-<<<<<<< HEAD
+-funny_ice_finalizer (diagnostic_context *context,
+-		     const diagnostic_info *diagnostic, diagnostic_t diag_kind);
+-=======
+ funny_ice_text_finalizer (diagnostic_text_output_format &text_output,
+ 			  const diagnostic_info *diagnostic,
+ 			  diagnostic_t diag_kind);
+->>>>>>>
+ 
+ } // namespace Resolver
+ } // namespace Rust
+diff --git a/gcc/rust/resolve/rust-late-name-resolver-2.0.cc b/gcc/rust/resolve/rust-late-name-resolver-2.0.cc
+index e89704f97f5..f743e1e03f3 100644
+--- a/gcc/rust/resolve/rust-late-name-resolver-2.0.cc
++++ b/gcc/rust/resolve/rust-late-name-resolver-2.0.cc
+@@ -263,11 +263,7 @@ Late::visit (AST::IdentifierExpr &expr)
+     }
+   else if (funny_error)
+     {
+-<<<<<<< HEAD
+-      diagnostic_finalizer (global_dc) = Resolver::funny_ice_finalizer;
+-=======
+       diagnostic_text_finalizer (global_dc) = Resolver::funny_ice_text_finalizer;
+->>>>>>>
+       emit_diagnostic (DK_ICE_NOBT, expr.get_locus (), -1,
+ 		       "are you trying to break %s? how dare you?",
+ 		       expr.as_string ().c_str ());
+diff --git a/gcc/rust/typecheck/rust-hir-type-check-expr.cc b/gcc/rust/typecheck/rust-hir-type-check-expr.cc
+index 79217e458b9..b2bcac065eb 100644
+--- a/gcc/rust/typecheck/rust-hir-type-check-expr.cc
++++ b/gcc/rust/typecheck/rust-hir-type-check-expr.cc
+@@ -1782,11 +1782,7 @@ TypeCheckExpr::visit (HIR::ClosureExpr &expr)
+       // FIXME
+       // we need to have a unified way or error'ing when we are missing lang
+       // items that is useful
+-<<<<<<< HEAD
+-      rust_fatal_error (expr.get_locus (), "unable to find lang item: %<%s%>",
+-=======
+       rust_fatal_error (expr.get_locus (), "unable to find lang item: %qs",
+->>>>>>>
+ 			LangItem::ToString (lang_item_type).c_str ());
+     }
+   DefId &respective_lang_item_id = lang_item_defined.value ();
+-- 
+2.48.1
+
