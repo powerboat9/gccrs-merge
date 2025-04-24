@@ -85,6 +85,10 @@ try_finish_last_upstream_merge() {
   fi
 }
 
+# handle commits which were not upstreamed in order
+declare -A BROKEN_COMMITS
+BROKEN_COMMITS["Disable parallel testing for 'rust/compile/nr2/compile.exp' [PR119508]"]=x
+
 # find the last upstreamed commit on both branches
 # store downstream in COMMIT_A and upstream in COMMIT_B
 find_last_upstreamed() {
@@ -99,12 +103,14 @@ find_last_upstreamed() {
       COMMIT_NAME="$(cd "$GIT_DIR" && \
 		     git show -s --format=format:"%s" $COMMIT_A | \
 		     sed 's/^gccrs: //')"
-      OTHER_COMMIT="${GIT_COMMIT_LISTING_B["$COMMIT_NAME"]}"
-      if [[ -n "$OTHER_COMMIT" ]]; then
-	COMMIT_B="$OTHER_COMMIT"
-	break
+      if [ -z "${BROKEN_COMMITS["$COMMIT_NAME"]}" ]; then
+	OTHER_COMMIT="${GIT_COMMIT_LISTING_B["$COMMIT_NAME"]}"
+	if [[ -n "$OTHER_COMMIT" ]]; then
+	  COMMIT_B="$OTHER_COMMIT"
+	  break
+	fi
+	GIT_COMMIT_LISTING_A["$COMMIT_NAME"]="$COMMIT_A"
       fi
-      GIT_COMMIT_LISTING_A["$COMMIT_NAME"]="$COMMIT_A"
       COMMIT_A="$(cd "$GIT_DIR" && git rev-parse --verify "$COMMIT_A~")"
     fi
 
@@ -112,12 +118,14 @@ find_last_upstreamed() {
       COMMIT_NAME="$(cd "$GIT_DIR" && \
 		     git show -s --format=format:"%s" $COMMIT_B | \
 		     sed 's/^gccrs: //')"
-      OTHER_COMMIT="${GIT_COMMIT_LISTING_A["$COMMIT_NAME"]}"
-      if [[ -n "$OTHER_COMMIT" ]]; then
-	COMMIT_A="$OTHER_COMMIT"
-	break
+      if [ -z "${BROKEN_COMMITS["$COMMIT_NAME"]}" ]; then
+	OTHER_COMMIT="${GIT_COMMIT_LISTING_A["$COMMIT_NAME"]}"
+	if [[ -n "$OTHER_COMMIT" ]]; then
+	  COMMIT_A="$OTHER_COMMIT"
+	  break
+	fi
+	GIT_COMMIT_LISTING_B["$COMMIT_NAME"]="$COMMIT_B"
       fi
-      GIT_COMMIT_LISTING_B["$COMMIT_NAME"]="$COMMIT_B"
       COMMIT_B="$(cd "$GIT_DIR" && git rev-parse --verify "$COMMIT_B~")"
     fi
   done
@@ -194,7 +202,7 @@ tr '\n' ':')"
     2020-2024:2020-2025:| \
     2024:2024-2025:| \
     2020-2023:2020-2025:| \
-    2023-2024:2023-2025)
+    2023-2024:2023-2025:)
       ;;
     *)
       echo "unrecognized year range modification: $PATCH"
@@ -222,7 +230,7 @@ IFS=$'\n'
 for FILE in $CONFLICT_LIST; do
   if [[ -z "$(cd "$GIT_DIR" && \
 	      cat "$FILE" | \
-	      grep '^(>>>>>>>\|<<<<<<<|=======)')" ]]; then
+	      grep '^\(>>>>>>>\|<<<<<<<\|=======\)')" ]]; then
     (cd "$GIT_DIR" && git add "$FILE")
   fi
 done
@@ -235,8 +243,7 @@ try_finish_last_upstream_merge
 echo "Remaining conflicts:"
 echo "$CONFLICT_LIST" | sed 's/^/\* /'
 echo "Manual resolution required"
+echo "Do *not* run 'git merge --continue' -- this script will handle that"
 
-while :; do
-  (cd "$GIT_DIR" && bash)
-  try_finish_last_upstream_merge
-done
+(cd "$GIT_DIR" && bash)
+try_finish_last_upstream_merge || exit 0
