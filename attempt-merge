@@ -3,6 +3,7 @@
 # config
 DEFAULT_NAME="Owen Avery"
 DEFAULT_EMAIL="powerboat9.gamer@gmail.com"
+CLANG_FORMAT="/usr/lib/llvm/16/bin/clang-format"
 
 # command line arguments
 if [ "$#" != 4 ]; then
@@ -58,14 +59,36 @@ attempt_simple_merge() {
 
 # run when we've solved all conflicts when merging the last upstreamed commits
 finish_last_upstream_merge() {
+  # complete merge
   (cd "$GIT_DIR" && \
     # effectively "git merge --continue --no-edit"
     # see: https://lore.kernel.org/all/xmqqk0ft5toy.fsf@gitster.g/T/
-    git commit --no-edit --cleanup=strip && \
+    git commit --no-edit --cleanup=strip) || exit 1
+  # HACK: prevent rename detection false positive
+  (cd "$GIT_DIR" && \
+    git merge -m "Merge downstream into intermediate merge" \
+      7a562bcec1f7604e6df1b604979ce4c1456e6049~) || exit 1
+  # merge in intermediate branch
+  (cd "$GIT_DIR" && \
     git checkout result && \
     git merge -m "Merge intermediate merge into result" \
-      intermediate-merge) || exit 1
+      intermediate-merge) #|| exit 1
+  # HACK: fix modify/delete gcc/rust/ast/rust-macro.cc
+  (cd "$GIT_DIR" && \
+    git rm gcc/rust/ast/rust-macro.cc && \
+    git commit --no-edit --cleanup=strip)
+  # perform a last merge from upstream
   attempt_simple_merge
+  # attempt a clang format
+  (cd "$GIT_DIR" && \
+    cp contrib/clang-format .clang-format && \
+    find gcc/rust | grep '\.\(\(cc\)\|\(h\)\)$' | xargs -L1 "$CLANG_FORMAT" -i && \
+    find libgrust | grep '\.\(\(cc\)\|\(h\)\)$' | xargs -L1 "$CLANG_FORMAT" -i && \
+    git commit -a -m 'Clang format') || exit 1
+  # attempt to fix warnings
+  WARNING_PATCH="$(pwd)/$(dirname "$0")"/0002-warnings.patch
+  (cd "$GIT_DIR" && git am "$WARNING_PATCH") || exit 1
+  # save result and exit
   push_result || exit 1
 }
 
