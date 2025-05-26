@@ -2,16 +2,16 @@ diff --git a/.gitignore b/.gitignore
 index a1f8b55012a..600e8052bdd 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -73,12 +73,8 @@ stamp-*
+@@ -73,12 +73,1 @@ stamp-*
  /gettext*
- 
- # ADDITIONS from GCCRS front-end
+-
+-# ADDITIONS from GCCRS front-end
 -<<<<<<< HEAD
- .vscode/*
- test.code-workspace
- 
- gcc/rust/test3-tiny/*
- .clang-format.swap
+-.vscode/*
+-test.code-workspace
+-
+-gcc/rust/test3-tiny/*
+-.clang-format.swap
 -=======
 -libgrust/*/target/
 ->>>>>>>
