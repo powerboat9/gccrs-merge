@@ -1,0 +1,46 @@
+From 6759b6f45e2189fe6b44429dc68d8fc14c160051 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marc=20Poulhi=C3=A8s?= <dkm@kataplop.net>
+Date: Tue, 13 May 2025 21:28:16 +0200
+Subject: [PATCH] gccrs: remove now useless clang-format comments
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Config has been updated upstream to correctly indent declaration.
+
+gcc/rust/ChangeLog:
+
+	* rust-attribs.cc (handle_hot_attribute): Remove clang-format comment.
+
+Signed-off-by: Marc Poulhiès <dkm@kataplop.net>
+---
+ gcc/rust/rust-attribs.cc | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/gcc/rust/rust-attribs.cc b/gcc/rust/rust-attribs.cc
+index 195dfbd5788..a98c1fab040 100644
+--- a/gcc/rust/rust-attribs.cc
++++ b/gcc/rust/rust-attribs.cc
+@@ -41,10 +41,6 @@ along with GCC; see the file COPYING3.  If not see
+ extern const struct scoped_attribute_specs grs_langhook_gnu_attribute_table;
+ extern const struct scoped_attribute_specs grs_langhook_common_attribute_table;
+ 
+-/* clang-format off */
+-/* Disable clang-format because it insists in having the return type on a
+-   single line (that's for definitions) */
+-
+ /* Internal attribute handlers for built-in functions.  */
+ static tree handle_noreturn_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_leaf_attribute (tree *, tree, tree, int, bool *);
+@@ -64,8 +60,6 @@ static tree handle_omp_declare_simd_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_cold_attribute (tree *, tree, tree, int, bool *);
+ static tree handle_hot_attribute (tree *, tree, tree, int, bool *);
+ 
+-/* clang-format on */
+-
+ /* Helper to define attribute exclusions.  */
+ #define ATTR_EXCL(name, function, type, variable)                              \
+   {                                                                            \
+-- 
+2.48.1
+

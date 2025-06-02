@@ -79,15 +79,21 @@ finish_last_upstream_merge() {
     git commit --no-edit --cleanup=strip)
   # perform a last merge from upstream
   attempt_simple_merge
-  # attempt a clang format
+  # fix warnings
+  WARNING_PATCH="$(pwd)/$(dirname "$0")"/0002-warnings.patch
+  (cd "$GIT_DIR" && git am "$WARNING_PATCH") || exit 1
+  # enable clang-format in more places
+  WARNING_PATCH="$(pwd)/$(dirname "$0")"/0003-allow-formatting.patch
+  (cd "$GIT_DIR" && git am "$WARNING_PATCH") || exit 1
+  # enable clang-format 16 in ci
+  WARNING_PATCH="$(pwd)/$(dirname "$0")"/0004-ci-format.patch
+  (cd "$GIT_DIR" && git am "$WARNING_PATCH") || exit 1
+  # attempt a clang-format
   (cd "$GIT_DIR" && \
     cp contrib/clang-format .clang-format && \
     find gcc/rust | grep '\.\(\(cc\)\|\(h\)\)$' | xargs -L1 "$CLANG_FORMAT" -i && \
     find libgrust | grep '\.\(\(cc\)\|\(h\)\)$' | xargs -L1 "$CLANG_FORMAT" -i && \
     git commit -a -m 'Clang format') || exit 1
-  # attempt to fix warnings
-  WARNING_PATCH="$(pwd)/$(dirname "$0")"/0002-warnings.patch
-  (cd "$GIT_DIR" && git am "$WARNING_PATCH") || exit 1
   # save result and exit
   push_result || exit 1
 }

@@ -1,0 +1,32 @@
+From e3dd775e3e40fec885743aecb74e782aad051f36 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marc=20Poulhi=C3=A8s?= <dkm@kataplop.net>
+Date: Sat, 10 May 2025 13:56:42 +0200
+Subject: [PATCH] ci: use clang-format 16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Bump clang-format version to 16. This is needed as upstream has updated
+the config and clang-format 10 doesn't support it.
+
+ChangeLog:
+	* .github/workflows/clang-format.yml: Bump clang-format version.
+
+Signed-off-by: Marc Poulhiès <dkm@kataplop.net>
+---
+ .github/workflows/clang-format.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/.github/workflows/clang-format.yml b/.github/workflows/clang-format.yml
+index 7325a5597e6..a5f165d4b52 100644
+--- a/.github/workflows/clang-format.yml
++++ b/.github/workflows/clang-format.yml
+@@ -23,4 +23,4 @@ jobs:
+       with:
+         source: 'gcc/rust/ libgrust/'
+         extensions: 'h,cc'
+-        clangFormatVersion: 10
++        clangFormatVersion: 16
+-- 
+2.48.1
+
