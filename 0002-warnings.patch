@@ -1,4 +1,4 @@
-From e78465d6554036ecf5a10b626248d1d2d8530f13 Mon Sep 17 00:00:00 2001
+From 42cb82376a535cda1f4e5284497e95d3517e9446 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Marc=20Poulhi=C3=A8s?= <dkm@kataplop.net>
 Date: Mon, 12 May 2025 22:42:38 +0200
 Subject: [PATCH] ci: adjust expected warnings after upstream sync
@@ -20,7 +20,7 @@ Signed-off-by: Marc Poulhiès <dkm@kataplop.net>
  3 files changed, 351 insertions(+), 129 deletions(-)
 
 diff --git a/.github/alpine_32bit_log_warnings b/.github/alpine_32bit_log_warnings
-index 9c99c7c1402..2558ecc86e2 100644
+index 9c99c7c1402..211a6e14d74 100644
 --- a/.github/alpine_32bit_log_warnings
 +++ b/.github/alpine_32bit_log_warnings
 @@ -62,16 +62,89 @@
@@ -103,12 +103,12 @@ index 9c99c7c1402..2558ecc86e2 100644
 +../../gcc/opts-diagnostic.cc:255:53: warning: unknown conversion type character 'e' in format [-Wformat=]
 +../../gcc/opts-diagnostic.cc:357:26: warning: too many arguments for format [-Wformat-extra-args]
 +../../gcc/opts-diagnostic.cc:358:69: warning: unknown conversion type character 'e' in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3559:28: warning: unknown conversion type character 'e' in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:38: warning: unknown conversion type character 'e' in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3698:28: warning: unknown conversion type character 'e' in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:38: warning: unknown conversion type character 'e' in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3557:28: warning: unknown conversion type character 'e' in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:38: warning: unknown conversion type character 'e' in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3696:28: warning: unknown conversion type character 'e' in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:38: warning: unknown conversion type character 'e' in format [-Wformat=]
 +../../gcc/text-art/style.cc:149:25: warning: spurious leading punctuation sequence ';' in format [-Wformat-diag]
 +../../gcc/text-art/style.cc:159:25: warning: spurious leading punctuation sequence ';' in format [-Wformat-diag]
 +../../gcc/text-art/table.cc:979:62: warning: unquoted keyword 'char' in format [-Wformat-diag]
@@ -123,7 +123,7 @@ index 9c99c7c1402..2558ecc86e2 100644
 -libtool: install: warning: remember to run `libtool --finish /usr/local/libexec/gcc/i586-alpine-linux-musl/14.0.1'
 +libtool: install: warning: remember to run `libtool --finish /usr/local/libexec/gcc/i586-alpine-linux-musl/16.0.0'
 diff --git a/.github/glibcxx_ubuntu64b_log_expected_warnings b/.github/glibcxx_ubuntu64b_log_expected_warnings
-index 2aec0ddaff0..7ced75d6013 100644
+index 2aec0ddaff0..8fbb27a2868 100644
 --- a/.github/glibcxx_ubuntu64b_log_expected_warnings
 +++ b/.github/glibcxx_ubuntu64b_log_expected_warnings
 @@ -63,70 +63,143 @@
@@ -283,12 +283,12 @@ index 2aec0ddaff0..7ced75d6013 100644
 +../../gcc/opts-diagnostic.cc:255:53: warning: unknown conversion type character ‘e’ in format [-Wformat=]
 +../../gcc/opts-diagnostic.cc:357:26: warning: too many arguments for format [-Wformat-extra-args]
 +../../gcc/opts-diagnostic.cc:358:69: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3559:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3698:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3557:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3696:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
 +../../gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.cc:145:46: warning: narrowing conversion of ‘loan’ from ‘Rust::Polonius::Loan’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
 +../../gcc/text-art/style.cc:149:25: warning: spurious leading punctuation sequence ‘;’ in format [-Wformat-diag]
 +../../gcc/text-art/style.cc:159:25: warning: spurious leading punctuation sequence ‘;’ in format [-Wformat-diag]
@@ -323,7 +323,7 @@ index 2aec0ddaff0..7ced75d6013 100644
 -libtool: install: warning: remember to run `libtool --finish /usr/local/libexec/gcc/x86_64-pc-linux-gnu/14.0.1'
 +libtool: install: warning: remember to run `libtool --finish /usr/local/libexec/gcc/x86_64-pc-linux-gnu/16.0.0'
 diff --git a/.github/log_expected_warnings b/.github/log_expected_warnings
-index 731fcaa556e..ca6e2a005b0 100644
+index 731fcaa556e..fea4629053b 100644
 --- a/.github/log_expected_warnings
 +++ b/.github/log_expected_warnings
 @@ -63,92 +63,168 @@
@@ -516,12 +516,12 @@ index 731fcaa556e..ca6e2a005b0 100644
 +../../gcc/opts-diagnostic.cc:255:53: warning: unknown conversion type character ‘e’ in format [-Wformat=]
 +../../gcc/opts-diagnostic.cc:357:26: warning: too many arguments for format [-Wformat-extra-args]
 +../../gcc/opts-diagnostic.cc:358:69: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3559:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3559:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:19: warning: too many arguments for format [-Wformat-extra-args]
-+../../gcc/pretty-print.cc:3698:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
-+../../gcc/pretty-print.cc:3698:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3557:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3557:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:19: warning: too many arguments for format [-Wformat-extra-args]
++../../gcc/pretty-print.cc:3696:28: warning: unknown conversion type character ‘e’ in format [-Wformat=]
++../../gcc/pretty-print.cc:3696:38: warning: unknown conversion type character ‘e’ in format [-Wformat=]
 +../../gcc/rust/checks/errors/borrowck/rust-borrow-checker-diagnostics.cc:145:46: warning: narrowing conversion of ‘loan’ from ‘Rust::Polonius::Loan’ {aka ‘long unsigned int’} to ‘uint32_t’ {aka ‘unsigned int’} [-Wnarrowing]
 +../../gcc/text-art/style.cc:149:25: warning: spurious leading punctuation sequence ‘;’ in format [-Wformat-diag]
 +../../gcc/text-art/style.cc:159:25: warning: spurious leading punctuation sequence ‘;’ in format [-Wformat-diag]
@@ -537,8 +537,8 @@ index 731fcaa556e..ca6e2a005b0 100644
 -../../libcpp/expr.cc:870:39: warning: format not a string literal and no format arguments [-Wformat-security]
 -../../libcpp/expr.cc:877:35: warning: format not a string literal and no format arguments [-Wformat-security]
 -../../libcpp/lex.cc:2120:39: warning: ‘loc’ may be used uninitialized [-Wmaybe-uninitialized]
-+../../gcc/tree-vect-stmts.cc:10897:47: warning: ‘stride_step’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-+../../gcc/tree.h:3838:41: warning: ‘append_args_last’ may be used uninitialized in this function [-Wmaybe-uninitialized]
++../../gcc/tree-vect-stmts.cc:10893:47: warning: ‘stride_step’ may be used uninitialized in this function [-Wmaybe-uninitialized]
++../../gcc/tree.h:3857:41: warning: ‘append_args_last’ may be used uninitialized in this function [-Wmaybe-uninitialized]
 +../../gcc/vec.h:347:10: warning: ‘void free(void*)’ called on unallocated object ‘tombstone_uids’ [-Wfree-nonheap-object]
 +../../gcc/vec.h:347:10: warning: ‘void free(void*)’ called on unallocated object ‘unique_labels’ [-Wfree-nonheap-object]
 +../../libcpp/expr.cc:882:35: warning: format not a string literal and no format arguments [-Wformat-security]
